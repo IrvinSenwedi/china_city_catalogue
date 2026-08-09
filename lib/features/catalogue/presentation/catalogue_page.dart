@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/auth/providers/auth_providers.dart';
 import 'package:china_city_catalogue/features/catalogue/presentation/product_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +21,17 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
     final productsAsync = ref.watch(productsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('China City')),
+      appBar: AppBar(
+        title: const Text('China City'),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              await ref.read(authRepositoryProvider).signOut();
+            },
+            icon: const Icon(Icons.logout),
+          ),
+        ],
+      ),
       body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
 

@@ -1,4 +1,4 @@
-import 'package:china_city_catalogue/features/catalogue/presentation/catalogue_page.dart';
+import 'package:china_city_catalogue/features/auth/presentation/auth_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'China City Catalogue',
-      home: const CataloguePage(),
+      home: const AuthGate(),
     );
   }
 }
