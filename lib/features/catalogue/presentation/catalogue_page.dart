@@ -1,66 +1,206 @@
+import 'package:china_city_catalogue/features/catalogue/presentation/product_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../models/product.dart';
 import '../providers/catalogue_providers.dart';
 
-class CataloguePage extends ConsumerWidget {
+class CataloguePage extends ConsumerStatefulWidget {
   const CataloguePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CataloguePage> createState() => _CataloguePageState();
+}
+
+class _CataloguePageState extends ConsumerState<CataloguePage> {
+  String searchQuery = '';
+  String selectedCategory = 'All';
+
+  @override
+  Widget build(BuildContext context) {
     final productsAsync = ref.watch(productsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('China City')),
       body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'Failed to load products.\n$error',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
+
+        error: (error, _) =>
+            Center(child: Text('Failed to load products.\n$error')),
+
         data: (products) {
-          if (products.isEmpty) {
-            return const Center(child: Text('No products available'));
-          }
+          final categories = [
+            'All',
+            ...products
+                .map((product) => product.categoryName)
+                .where((category) => category.isNotEmpty)
+                .toSet(),
+          ];
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: products.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final product = products[index];
+          final filteredProducts = products.where((product) {
+            final matchesSearch =
+                product.name.toLowerCase().contains(
+                  searchQuery.toLowerCase(),
+                ) ||
+                product.description.toLowerCase().contains(
+                  searchQuery.toLowerCase(),
+                );
 
-              return Card(
-                child: ListTile(
-                  title: Text(product.name),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
+            final matchesCategory =
+                selectedCategory == 'All' ||
+                product.categoryName == selectedCategory;
 
-                      Text(product.storeName),
+            return matchesSearch && matchesCategory;
+          }).toList();
 
-                      Text(product.categoryName),
-
-                      const SizedBox(height: 4),
-
-                      Text(product.stockLabel),
-                    ],
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search products...',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
-                  trailing: Text(
+                ),
+              ),
+
+              SizedBox(
+                height: 50,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: categories.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
+
+                    return ChoiceChip(
+                      label: Text(category),
+                      selected: selectedCategory == category,
+                      onSelected: (_) {
+                        setState(() {
+                          selectedCategory = category;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              Expanded(
+                child: filteredProducts.isEmpty
+                    ? const Center(child: Text('No products found'))
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.70,
+                            ),
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          return _ProductCard(product: filteredProducts[index]);
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ProductCard extends StatelessWidget {
+  const _ProductCard({required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailsPage(product: product),
+          ),
+        );
+      },
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: product.imageUrl != null
+                    ? Image.network(
+                        product.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.shopping_bag_outlined, size: 48),
+                      )
+                    : const Icon(Icons.shopping_bag_outlined, size: 48),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    product.storeName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
                     'R${product.price.toStringAsFixed(2)}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                ),
-              );
-            },
-          );
-        },
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    product.stockLabel,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
