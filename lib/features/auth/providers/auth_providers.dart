@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/auth/models/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,4 +17,14 @@ final currentUserProvider = Provider<User?>((ref) {
   ref.watch(authStateProvider);
 
   return ref.watch(authRepositoryProvider).currentUser;
+});
+
+final currentProfileProvider = FutureProvider<UserProfile?>((ref) async {
+  ref.watch(authStateProvider);
+
+  final user = ref.watch(authRepositoryProvider).currentUser;
+
+  if (user == null) return null;
+
+  return ref.watch(authRepositoryProvider).getCurrentProfile();
 });

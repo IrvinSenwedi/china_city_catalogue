@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/auth/models/user_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthRepository {
@@ -31,5 +32,19 @@ class AuthRepository {
 
   Future<void> signOut() async {
     await _client.auth.signOut();
+  }
+
+  Future<UserProfile?> getCurrentProfile() async {
+    final user = _client.auth.currentUser;
+
+    if (user == null) return null;
+
+    final response = await _client
+        .from('profiles')
+        .select()
+        .eq('id', user.id)
+        .single();
+
+    return UserProfile.fromJson(response);
   }
 }

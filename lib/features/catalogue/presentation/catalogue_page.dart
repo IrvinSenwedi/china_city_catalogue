@@ -1,5 +1,6 @@
 import 'package:china_city_catalogue/features/auth/providers/auth_providers.dart';
 import 'package:china_city_catalogue/features/catalogue/presentation/product_details_page.dart';
+import 'package:china_city_catalogue/features/reservations/presentation/my_reservations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/product.dart';
@@ -25,6 +26,18 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
         title: const Text('China City'),
         actions: [
           IconButton(
+            tooltip: 'My Reservations',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MyReservationsPage()),
+              );
+            },
+            icon: const Icon(Icons.receipt_long_outlined),
+          ),
+
+          IconButton(
+            tooltip: 'Sign Out',
             onPressed: () async {
               await ref.read(authRepositoryProvider).signOut();
             },
