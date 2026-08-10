@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/recommendations/providers/recommendation_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,6 +21,10 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final recommendationsAsync = ref.watch(
+      productRecommendationsProvider(product.id),
+    );
+
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
@@ -104,6 +109,111 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
 
                   const SizedBox(height: 32),
 
+                  Text(
+                    'Recommended for You',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    'AI-powered recommendations based on product similarity.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  recommendationsAsync.when(
+                    loading: () => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+
+                    error: (error, _) => Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text('Recommendations unavailable.\n$error'),
+                      ),
+                    ),
+
+                    data: (recommendations) {
+                      if (recommendations.isEmpty) {
+                        return const Text('No recommendations available.');
+                      }
+
+                      return SizedBox(
+                        height: 170,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: recommendations.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 12),
+                          itemBuilder: (context, index) {
+                            final item = recommendations[index];
+
+                            final name = item['name'] ?? 'Unknown Product';
+
+                            final category = item['category'] ?? '';
+
+                            final score =
+                                (item['similarity_score'] as num?)
+                                    ?.toDouble() ??
+                                0;
+
+                            return SizedBox(
+                              width: 180,
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.auto_awesome),
+
+                                      const SizedBox(height: 10),
+
+                                      Text(
+                                        name,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 6),
+
+                                      Text(
+                                        category,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
+                                      ),
+
+                                      const Spacer(),
+
+                                      Text(
+                                        'Similarity: '
+                                        '${(score * 100).toStringAsFixed(0)}%',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
                     height: 52,
