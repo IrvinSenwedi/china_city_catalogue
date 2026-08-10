@@ -1,3 +1,5 @@
+import 'package:china_city_catalogue/features/catalogue/providers/catalogue_providers.dart';
+import 'package:china_city_catalogue/features/recommendations/data/interaction_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/recommendation_repository.dart';
@@ -17,3 +19,7 @@ final productRecommendationsProvider =
           .watch(recommendationRepositoryProvider)
           .getRecommendations(productId: productId);
     });
+
+final interactionRepositoryProvider = Provider<InteractionRepository>((ref) {
+  return InteractionRepository(ref.watch(supabaseProvider));
+});

@@ -15,6 +15,19 @@ class ProductDetailsPage extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() async {
+      try {
+        await ref.read(interactionRepositoryProvider).recordView(product.id);
+      } catch (error) {
+        debugPrint('Failed to record product view: $error');
+      }
+    });
+  }
+
   bool isReserving = false;
 
   Product get product => widget.product;
@@ -274,6 +287,14 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
       await ref
           .read(reservationRepositoryProvider)
           .createReservation(productId: product.id, quantity: 1);
+
+      try {
+        await ref
+            .read(interactionRepositoryProvider)
+            .recordReservation(product.id);
+      } catch (error) {
+        debugPrint('Failed to record reservation interaction: $error');
+      }
 
       ref.invalidate(myReservationsProvider);
 
