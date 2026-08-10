@@ -22,6 +22,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
     Future.microtask(() async {
       try {
         await ref.read(interactionRepositoryProvider).recordView(product.id);
+        ref.invalidate(userRecommendationsProvider);
       } catch (error) {
         debugPrint('Failed to record product view: $error');
       }
@@ -292,6 +293,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
         await ref
             .read(interactionRepositoryProvider)
             .recordReservation(product.id);
+        ref.invalidate(userRecommendationsProvider);
       } catch (error) {
         debugPrint('Failed to record reservation interaction: $error');
       }

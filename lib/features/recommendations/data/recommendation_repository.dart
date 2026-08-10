@@ -23,4 +23,30 @@ class RecommendationRepository {
 
     return List<Map<String, dynamic>>.from(data['recommendations'] ?? []);
   }
+
+  Future<List<Map<String, dynamic>>> getUserRecommendations({
+    required String userId,
+    int limit = 5,
+  }) async {
+    final uri = Uri.parse('$baseUrl/recommendations/user/$userId?limit=$limit');
+
+    print('PERSONALISED REQUEST: $uri');
+
+    final response = await http.get(uri).timeout(const Duration(seconds: 10));
+
+    print('PERSONALISED STATUS: ${response.statusCode}');
+
+    print('PERSONALISED RESPONSE: ${response.body}');
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load personalised recommendations: '
+        '${response.body}',
+      );
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+    return List<Map<String, dynamic>>.from(data['recommendations'] ?? []);
+  }
 }

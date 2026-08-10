@@ -1,6 +1,10 @@
 from fastapi import FastAPI, HTTPException
 
-from product_service import get_products
+from product_service import (
+    get_products,
+    get_user_interactions,
+)
+
 from recommender import ProductRecommender
 
 app = FastAPI(
@@ -73,6 +77,39 @@ def get_recommendations(
             status_code=404,
             detail=str(error),
         )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@app.get("/recommendations/user/{user_id}")
+def get_user_recommendations(
+    user_id: str,
+    limit: int = 5,
+):
+    try:
+        train_model()
+
+        interactions = get_user_interactions(
+            user_id
+        )
+
+        recommendations = (
+            recommender.recommend_for_user(
+                interactions=interactions,
+                limit=limit,
+            )
+        )
+
+        return {
+            "user_id": user_id,
+            "interaction_count": len(interactions),
+            "count": len(recommendations),
+            "recommendations": recommendations,
+        }
 
     except Exception as error:
         raise HTTPException(
