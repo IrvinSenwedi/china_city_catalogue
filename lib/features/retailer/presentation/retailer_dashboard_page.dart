@@ -1,4 +1,5 @@
 import 'package:china_city_catalogue/features/retailer/presentation/retailer_products_page.dart';
+import 'package:china_city_catalogue/features/retailer/presentation/retailer_reservations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -56,7 +57,12 @@ class RetailerDashboardPage extends ConsumerWidget {
               description: 'View customer reservations.',
               icon: Icons.receipt_long_outlined,
               onTap: () {
-                //todo
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RetailerReservationsPage(),
+                  ),
+                );
               },
             ),
           ],

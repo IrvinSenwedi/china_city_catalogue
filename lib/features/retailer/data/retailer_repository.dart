@@ -100,4 +100,39 @@ class RetailerRepository {
       'stock_quantity': stockQuantity,
     });
   }
+
+  Future<List<Map<String, dynamic>>> getStoreReservations() async {
+    final storeId = await getMyStoreId();
+
+    final response = await _client
+        .from('reservations')
+        .select('''
+        id,
+        quantity,
+        status,
+        created_at,
+        products!inner(
+          id,
+          name,
+          store_id
+        ),
+        profiles!reservations_customer_id_fkey(
+          full_name
+        )
+      ''')
+        .eq('products.store_id', storeId)
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<void> updateReservationStatus({
+    required String reservationId,
+    required String status,
+  }) async {
+    await _client
+        .from('reservations')
+        .update({'status': status})
+        .eq('id', reservationId);
+  }
 }

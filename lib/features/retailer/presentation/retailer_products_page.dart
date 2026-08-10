@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/retailer/presentation/add_product_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/retailer_providers.dart';
@@ -14,7 +15,10 @@ class RetailerProductsPage extends ConsumerWidget {
       appBar: AppBar(title: const Text('My Products')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Add Product comes next.
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddProductPage()),
+          );
         },
         icon: const Icon(Icons.add),
         label: const Text('Add Product'),
