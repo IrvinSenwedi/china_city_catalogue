@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/auth_providers.dart';
+import 'widgets/auth_header.dart';
+import 'widgets/auth_text_field.dart';
+import 'widgets/role_selector.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -12,7 +15,9 @@ class RegisterPage extends ConsumerStatefulWidget {
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   final nameController = TextEditingController();
+
   final emailController = TextEditingController();
+
   final passwordController = TextEditingController();
 
   String selectedRole = 'CUSTOMER';
@@ -33,6 +38,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Complete all fields')));
+
       return;
     }
 
@@ -71,91 +77,91 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Full Name',
-                prefixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
-              ),
-            ),
+      appBar: AppBar(),
 
-            const SizedBox(height: 16),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const AuthHeader(
+                        title: 'Create your account',
+                        subtitle:
+                            'Choose how you want to use the China City catalogue.',
+                        icon: Icons.person_add_alt_1_outlined,
+                      ),
 
-            TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email_outlined),
-                border: OutlineInputBorder(),
-              ),
-            ),
+                      const SizedBox(height: 32),
 
-            const SizedBox(height: 16),
+                      AuthTextField(
+                        controller: nameController,
+                        label: 'Full Name',
+                        icon: Icons.person_outline,
+                        textInputAction: TextInputAction.next,
+                      ),
 
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                prefixIcon: Icon(Icons.lock_outline),
-                border: OutlineInputBorder(),
-              ),
-            ),
+                      const SizedBox(height: 16),
 
-            const SizedBox(height: 24),
+                      AuthTextField(
+                        controller: emailController,
+                        label: 'Email',
+                        icon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                      ),
 
-            Text(
-              'Account Type',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+                      const SizedBox(height: 16),
 
-            const SizedBox(height: 8),
+                      AuthTextField(
+                        controller: passwordController,
+                        label: 'Password',
+                        icon: Icons.lock_outline,
+                        obscureText: true,
+                        textInputAction: TextInputAction.done,
+                      ),
 
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(
-                  value: 'CUSTOMER',
-                  label: Text('Customer'),
-                  icon: Icon(Icons.person_outline),
+                      const SizedBox(height: 26),
+
+                      RoleSelector(
+                        selectedRole: selectedRole,
+                        onChanged: (role) {
+                          setState(() {
+                            selectedRole = role;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      SizedBox(
+                        height: 52,
+                        child: FilledButton(
+                          onPressed: isLoading ? null : register,
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Create Account'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                ButtonSegment(
-                  value: 'RETAILER',
-                  label: Text('Retailer'),
-                  icon: Icon(Icons.store_outlined),
-                ),
-              ],
-              selected: {selectedRole},
-              onSelectionChanged: (selection) {
-                setState(() {
-                  selectedRole = selection.first;
-                });
-              },
-            ),
-
-            const SizedBox(height: 32),
-
-            SizedBox(
-              height: 52,
-              child: FilledButton(
-                onPressed: isLoading ? null : register,
-                child: isLoading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Create Account'),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
