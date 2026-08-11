@@ -135,4 +135,13 @@ class RetailerRepository {
         .update({'status': status})
         .eq('id', reservationId);
   }
+
+  Future<List<Map<String, dynamic>>> getSearchInsights({int limit = 10}) async {
+    final response = await _client.rpc(
+      'get_search_insights',
+      params: {'p_limit': limit},
+    );
+
+    return List<Map<String, dynamic>>.from(response as List);
+  }
 }

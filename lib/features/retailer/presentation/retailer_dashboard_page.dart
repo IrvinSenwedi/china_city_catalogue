@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/retailer/presentation/retailer_search_insights_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -135,6 +136,22 @@ class RetailerDashboardPage extends ConsumerWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => const RetailerReservationsPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+
+              RetailerActionCard(
+                title: 'Search Insights',
+                description:
+                    'See what customers are searching for and identify stock opportunities.',
+                icon: Icons.insights_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RetailerSearchInsightsPage(),
                     ),
                   );
                 },

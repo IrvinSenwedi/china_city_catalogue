@@ -1,13 +1,13 @@
+import 'package:china_city_catalogue/features/search/presentation/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../auth/providers/auth_providers.dart';
 import '../../recommendations/providers/recommendation_providers.dart';
 import '../../reservations/presentation/my_reservations_page.dart';
 import '../providers/catalogue_providers.dart';
 import 'widgets/catalogue_error_view.dart';
 import 'widgets/catalogue_header.dart';
-import 'widgets/catalogue_search_bar.dart';
+
 import 'widgets/catalogue_section_header.dart';
 import 'widgets/category_filter.dart';
 import 'widgets/empty_products.dart';
@@ -22,7 +22,6 @@ class CataloguePage extends ConsumerStatefulWidget {
 }
 
 class _CataloguePageState extends ConsumerState<CataloguePage> {
-  String searchQuery = '';
   String selectedCategory = 'All';
 
   @override
@@ -53,18 +52,12 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
                   .toSet(),
             ];
 
-            final query = searchQuery.toLowerCase();
-
             final filteredProducts = products.where((product) {
-              final matchesSearch =
-                  product.name.toLowerCase().contains(query) ||
-                  product.description.toLowerCase().contains(query);
-
               final matchesCategory =
                   selectedCategory == 'All' ||
                   product.categoryName == selectedCategory;
 
-              return matchesSearch && matchesCategory;
+              return matchesCategory;
             }).toList();
 
             return CustomScrollView(
@@ -86,13 +79,25 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
                 ),
 
                 SliverToBoxAdapter(
-                  child: CatalogueSearchBar(
-                    value: searchQuery,
-                    onChanged: (value) {
-                      setState(() {
-                        searchQuery = value;
-                      });
-                    },
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SearchPage()),
+                        );
+                      },
+                      child: IgnorePointer(
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            hintText: 'What are you looking for?',
+                            prefixIcon: Icon(Icons.search),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
 

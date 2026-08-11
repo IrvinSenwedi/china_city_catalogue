@@ -29,3 +29,8 @@ final retailerReservationsProvider = FutureProvider<List<Map<String, dynamic>>>(
     return ref.watch(retailerRepositoryProvider).getStoreReservations();
   },
 );
+
+final retailerSearchInsightsProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+      return ref.watch(retailerRepositoryProvider).getSearchInsights();
+    });
