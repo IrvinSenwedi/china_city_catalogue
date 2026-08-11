@@ -1,7 +1,8 @@
+import 'package:china_city_catalogue/features/retailer/presentation/widgets/retailer_reservation_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../providers/retailer_providers.dart';
+import 'widgets/retailer_reservation_card.dart';
 
 class RetailerReservationsPage extends ConsumerWidget {
   const RetailerReservationsPage({super.key});
@@ -44,22 +45,50 @@ class RetailerReservationsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Reservations')),
+
       body: reservationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
 
         error: (error, _) => Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'Failed to load reservations.\n$error',
-              textAlign: TextAlign.center,
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48),
+
+                const SizedBox(height: 12),
+
+                Text(
+                  'Unable to load reservations',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  '$error',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+
+                const SizedBox(height: 16),
+
+                FilledButton.icon(
+                  onPressed: () {
+                    ref.invalidate(retailerReservationsProvider);
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                ),
+              ],
             ),
           ),
         ),
 
         data: (reservations) {
           if (reservations.isEmpty) {
-            return const Center(child: Text('No reservations found.'));
+            return const RetailerReservationsEmptyState();
           }
 
           return RefreshIndicator(
@@ -68,10 +97,12 @@ class RetailerReservationsPage extends ConsumerWidget {
 
               await ref.read(retailerReservationsProvider.future);
             },
+
             child: ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               itemCount: reservations.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
+
               itemBuilder: (context, index) {
                 final reservation = reservations[index];
 
@@ -92,11 +123,12 @@ class RetailerReservationsPage extends ConsumerWidget {
                 final customerName =
                     customer?['full_name'] ?? 'Unknown Customer';
 
-                return _ReservationCard(
+                return RetailerReservationCard(
                   productName: productName,
                   customerName: customerName,
                   quantity: quantity,
                   status: status,
+
                   onConfirm: status == 'PENDING'
                       ? () => _updateStatus(
                           context: context,
@@ -105,20 +137,22 @@ class RetailerReservationsPage extends ConsumerWidget {
                           status: 'CONFIRMED',
                         )
                       : null,
-                  onCancel: status == 'PENDING' || status == 'CONFIRMED'
-                      ? () => _updateStatus(
-                          context: context,
-                          ref: ref,
-                          reservationId: reservationId,
-                          status: 'CANCELLED',
-                        )
-                      : null,
+
                   onCollected: status == 'CONFIRMED'
                       ? () => _updateStatus(
                           context: context,
                           ref: ref,
                           reservationId: reservationId,
                           status: 'COLLECTED',
+                        )
+                      : null,
+
+                  onCancel: status == 'PENDING' || status == 'CONFIRMED'
+                      ? () => _updateStatus(
+                          context: context,
+                          ref: ref,
+                          reservationId: reservationId,
+                          status: 'CANCELLED',
                         )
                       : null,
                 );
@@ -128,136 +162,5 @@ class RetailerReservationsPage extends ConsumerWidget {
         },
       ),
     );
-  }
-}
-
-class _ReservationCard extends StatelessWidget {
-  const _ReservationCard({
-    required this.productName,
-    required this.customerName,
-    required this.quantity,
-    required this.status,
-    required this.onConfirm,
-    required this.onCancel,
-    required this.onCollected,
-  });
-
-  final String productName;
-  final String customerName;
-  final int quantity;
-  final String status;
-
-  final VoidCallback? onConfirm;
-  final VoidCallback? onCancel;
-  final VoidCallback? onCollected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CircleAvatar(child: Icon(Icons.inventory_2_outlined)),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        productName,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      Text('Customer: $customerName'),
-
-                      const SizedBox(height: 4),
-
-                      Text('Quantity: $quantity'),
-                    ],
-                  ),
-                ),
-
-                _StatusChip(status: status),
-              ],
-            ),
-
-            if (onConfirm != null ||
-                onCancel != null ||
-                onCollected != null) ...[
-              const SizedBox(height: 20),
-              const Divider(),
-              const SizedBox(height: 8),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (onConfirm != null)
-                    FilledButton.icon(
-                      onPressed: onConfirm,
-                      icon: const Icon(Icons.check),
-                      label: const Text('Confirm'),
-                    ),
-
-                  if (onCollected != null)
-                    FilledButton.tonalIcon(
-                      onPressed: onCollected,
-                      icon: const Icon(Icons.done_all),
-                      label: const Text('Collected'),
-                    ),
-
-                  if (onCancel != null)
-                    OutlinedButton.icon(
-                      onPressed: onCancel,
-                      icon: const Icon(Icons.close),
-                      label: const Text('Cancel'),
-                    ),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    IconData icon;
-
-    switch (status) {
-      case 'CONFIRMED':
-        icon = Icons.check_circle_outline;
-        break;
-
-      case 'COLLECTED':
-        icon = Icons.done_all;
-        break;
-
-      case 'CANCELLED':
-        icon = Icons.cancel_outlined;
-        break;
-
-      default:
-        icon = Icons.schedule;
-    }
-
-    return Chip(avatar: Icon(icon, size: 18), label: Text(status));
   }
 }

@@ -1,8 +1,11 @@
-import 'package:china_city_catalogue/features/retailer/presentation/add_product_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../providers/retailer_providers.dart';
-import 'edit_product_page.dart';
+import 'add_product_page.dart';
+import 'widgets/retailer_product_card.dart';
+import 'widgets/retailer_products_empty_state.dart';
+import 'widgets/retailer_products_error_view.dart';
 
 class RetailerProductsPage extends ConsumerWidget {
   const RetailerProductsPage({super.key});
@@ -13,6 +16,7 @@ class RetailerProductsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Products')),
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -23,48 +27,35 @@ class RetailerProductsPage extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Add Product'),
       ),
+
       body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'Failed to load products.\n$error',
-              textAlign: TextAlign.center,
-            ),
-          ),
+
+        error: (_, __) => RetailerProductsErrorView(
+          onRetry: () {
+            ref.invalidate(retailerProductsProvider);
+          },
         ),
+
         data: (products) {
           if (products.isEmpty) {
-            return const Center(child: Text('No products found.'));
+            return const RetailerProductsEmptyState();
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: products.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final product = products[index];
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(retailerProductsProvider);
 
-              return Card(
-                child: ListTile(
-                  title: Text(product.name),
-                  subtitle: Text(
-                    '${product.stockLabel}\n'
-                    '${product.stockQuantity} units',
-                  ),
-                  trailing: Text('R${product.price.toStringAsFixed(2)}'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EditProductPage(product: product),
-                      ),
-                    );
-                  },
-                ),
-              );
+              await ref.read(retailerProductsProvider.future);
             },
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+              itemCount: products.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                return RetailerProductCard(product: products[index]);
+              },
+            ),
           );
         },
       ),
