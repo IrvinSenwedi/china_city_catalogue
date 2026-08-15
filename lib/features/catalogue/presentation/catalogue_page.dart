@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/profile/presentation/profile_page.dart';
 import 'package:china_city_catalogue/features/search/presentation/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,6 +75,12 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
                     },
                     onSignOutPressed: () async {
                       await ref.read(authRepositoryProvider).signOut();
+                    },
+                    onProfilePressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      );
                     },
                   ),
                 ),

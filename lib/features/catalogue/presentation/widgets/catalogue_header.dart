@@ -5,10 +5,12 @@ class CatalogueHeader extends StatelessWidget {
     super.key,
     required this.onReservationsPressed,
     required this.onSignOutPressed,
+    required this.onProfilePressed,
   });
 
   final VoidCallback onReservationsPressed;
   final VoidCallback onSignOutPressed;
+  final VoidCallback onProfilePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +53,10 @@ class CatalogueHeader extends StatelessWidget {
                 onReservationsPressed();
               }
 
+              if (value == 'profile') {
+                onProfilePressed();
+              }
+
               if (value == 'logout') {
                 onSignOutPressed();
               }
@@ -61,6 +67,13 @@ class CatalogueHeader extends StatelessWidget {
                 child: ListTile(
                   leading: Icon(Icons.receipt_long_outlined),
                   title: Text('My Reservations'),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'profile',
+                child: ListTile(
+                  leading: Icon(Icons.person_outline),
+                  title: Text('Profile'),
                 ),
               ),
               PopupMenuItem(
