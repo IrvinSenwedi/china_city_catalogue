@@ -12,6 +12,8 @@ class RetailerReservationCard extends StatelessWidget {
     required this.onConfirm,
     required this.onCancel,
     required this.onCollected,
+    required this.collectionAt,
+    required this.expiresAt,
   });
 
   final String productName;
@@ -22,6 +24,9 @@ class RetailerReservationCard extends StatelessWidget {
   final VoidCallback? onConfirm;
   final VoidCallback? onCancel;
   final VoidCallback? onCollected;
+
+  final DateTime? collectionAt;
+  final DateTime? expiresAt;
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +90,89 @@ class RetailerReservationCard extends StatelessWidget {
               ],
             ),
 
+            if (collectionAt != null || expiresAt != null) ...[
+              const SizedBox(height: 18),
+              const Divider(),
+              const SizedBox(height: 12),
+            ],
+
+            if (collectionAt != null)
+              _InfoRow(
+                icon: Icons.event_outlined,
+                label: 'Collection',
+                value: _formatDateTime(collectionAt!),
+              ),
+
+            if (collectionAt != null && expiresAt != null)
+              const SizedBox(height: 10),
+
+            if (expiresAt != null)
+              _InfoRow(
+                icon: Icons.timer_outlined,
+                label: 'Held until',
+                value: _formatTime(expiresAt!),
+              ),
+
+            if (status == 'EXPIRED') ...[
+              const SizedBox(height: 16),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer_off_outlined, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Collection window missed. '
+                        'This reservation has expired.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            if (status == 'COLLECTED') ...[
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, size: 18),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      'This order was collected successfully.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            if (status == 'CANCELLED') ...[
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  const Icon(Icons.cancel_outlined, size: 18),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      'This reservation was cancelled.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
             if (onConfirm != null ||
                 onCancel != null ||
                 onCollected != null) ...[
@@ -122,6 +210,67 @@ class RetailerReservationCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  static String _formatDateTime(DateTime value) {
+    final day = value.day.toString().padLeft(2, '0');
+
+    final month = value.month.toString().padLeft(2, '0');
+
+    final year = value.year;
+
+    return '$day/$month/$year · '
+        '${_formatTime(value)}';
+  }
+
+  static String _formatTime(DateTime value) {
+    final hour = value.hour.toString().padLeft(2, '0');
+
+    final minute = value.minute.toString().padLeft(2, '0');
+
+    return '$hour:$minute';
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18),
+
+        const SizedBox(width: 8),
+
+        Text(
+          '$label:',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+
+        const SizedBox(width: 6),
+
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
     );
   }
 }

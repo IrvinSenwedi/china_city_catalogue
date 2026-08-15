@@ -104,6 +104,9 @@ class RetailerRepository {
   Future<List<Map<String, dynamic>>> getStoreReservations() async {
     final storeId = await getMyStoreId();
 
+    // Expire reservations whose collection window has passed.
+    await _client.rpc('expire_reservations');
+
     final response = await _client
         .from('reservations')
         .select('''
@@ -111,6 +114,8 @@ class RetailerRepository {
         quantity,
         status,
         created_at,
+        collection_at,
+        expires_at,
         products!inner(
           id,
           name,
@@ -121,7 +126,7 @@ class RetailerRepository {
         )
       ''')
         .eq('products.store_id', storeId)
-        .order('created_at', ascending: false);
+        .order('collection_at', ascending: true);
 
     return List<Map<String, dynamic>>.from(response);
   }
