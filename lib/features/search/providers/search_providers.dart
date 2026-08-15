@@ -18,3 +18,11 @@ final productSearchProvider = FutureProvider.family<List<Product>, String>((
 
   return ref.watch(searchRepositoryProvider).searchProducts(query: query);
 });
+
+final recentSearchesProvider = FutureProvider<List<String>>((ref) async {
+  return ref.watch(searchRepositoryProvider).getRecentSearches();
+});
+
+final popularSearchesProvider = FutureProvider<List<String>>((ref) async {
+  return ref.watch(searchRepositoryProvider).getPopularSearches();
+});

@@ -34,10 +34,24 @@ class AuthRepository {
     await _client.auth.signOut();
   }
 
+  Future<void> sendPasswordReset({required String email}) async {
+    await _client.auth.resetPasswordForEmail(
+      email.trim(),
+
+      redirectTo: 'chinacitycatalogue://reset-password',
+    );
+  }
+
+  Future<void> updatePassword({required String newPassword}) async {
+    await _client.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
   Future<UserProfile?> getCurrentProfile() async {
     final user = _client.auth.currentUser;
 
-    if (user == null) return null;
+    if (user == null) {
+      return null;
+    }
 
     final response = await _client
         .from('profiles')

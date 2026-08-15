@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/auth/presentation/forgot_password_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -106,7 +107,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
 
                       const SizedBox(height: 24),
-
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordPage(),
+                              ),
+                            );
+                          },
+                          child: const Text('Forgot password?'),
+                        ),
+                      ),
                       SizedBox(
                         height: 52,
                         child: FilledButton(
