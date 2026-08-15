@@ -9,6 +9,7 @@ class ReservationRepository {
   Future<void> createReservation({
     required String productId,
     required int quantity,
+    required DateTime collectionAt,
   }) async {
     final user = _client.auth.currentUser;
 
@@ -16,10 +17,14 @@ class ReservationRepository {
       throw Exception('You must be signed in.');
     }
 
+    final expiresAt = collectionAt.add(const Duration(minutes: 30));
+
     await _client.from('reservations').insert({
       'customer_id': user.id,
       'product_id': productId,
       'quantity': quantity,
+      'collection_at': collectionAt.toUtc().toIso8601String(),
+      'expires_at': expiresAt.toUtc().toIso8601String(),
     });
   }
 
@@ -30,6 +35,10 @@ class ReservationRepository {
       throw Exception('You must be signed in.');
     }
 
+    // Expire any reservation whose
+    // collection window has passed.
+    await _client.rpc('expire_reservations');
+
     final response = await _client
         .from('reservations')
         .select('''
@@ -37,6 +46,8 @@ class ReservationRepository {
           quantity,
           status,
           created_at,
+          collection_at,
+          expires_at,
           products(
             name,
             price

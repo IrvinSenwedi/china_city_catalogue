@@ -5,11 +5,18 @@ import '../providers/reservation_providers.dart';
 import 'widgets/reservation_card.dart';
 import 'widgets/reservations_empty_state.dart';
 
-class MyReservationsPage extends ConsumerWidget {
+class MyReservationsPage extends ConsumerStatefulWidget {
   const MyReservationsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyReservationsPage> createState() => _MyReservationsPageState();
+}
+
+class _MyReservationsPageState extends ConsumerState<MyReservationsPage> {
+  int selectedTab = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final reservationsAsync = ref.watch(myReservationsProvider);
 
     return Scaffold(
@@ -59,23 +66,128 @@ class MyReservationsPage extends ConsumerWidget {
             return const ReservationsEmptyState();
           }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(myReservationsProvider);
+          final activeReservations = reservations.where((reservation) {
+            return reservation.status == 'PENDING' ||
+                reservation.status == 'CONFIRMED';
+          }).toList();
 
-              await ref.read(myReservationsProvider.future);
-            },
+          final historyReservations = reservations.where((reservation) {
+            return reservation.status == 'COLLECTED' ||
+                reservation.status == 'CANCELLED' ||
+                reservation.status == 'EXPIRED';
+          }).toList();
 
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              itemCount: reservations.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                return ReservationCard(reservation: reservations[index]);
-              },
-            ),
+          final visibleReservations = selectedTab == 0
+              ? activeReservations
+              : historyReservations;
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: SegmentedButton<int>(
+                  segments: [
+                    ButtonSegment<int>(
+                      value: 0,
+                      icon: const Icon(Icons.schedule_outlined),
+                      label: Text('Active (${activeReservations.length})'),
+                    ),
+                    ButtonSegment<int>(
+                      value: 1,
+                      icon: const Icon(Icons.history),
+                      label: Text('History (${historyReservations.length})'),
+                    ),
+                  ],
+                  selected: {selectedTab},
+                  onSelectionChanged: (selection) {
+                    setState(() {
+                      selectedTab = selection.first;
+                    });
+                  },
+                ),
+              ),
+
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(myReservationsProvider);
+
+                    await ref.read(myReservationsProvider.future);
+                  },
+                  child: visibleReservations.isEmpty
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.55,
+                              child: _TabEmptyState(
+                                isHistory: selectedTab == 1,
+                              ),
+                            ),
+                          ],
+                        )
+                      : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                          itemCount: visibleReservations.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            return ReservationCard(
+                              reservation: visibleReservations[index],
+                            );
+                          },
+                        ),
+                ),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _TabEmptyState extends StatelessWidget {
+  const _TabEmptyState({required this.isHistory});
+
+  final bool isHistory;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isHistory ? Icons.history : Icons.receipt_long_outlined,
+              size: 48,
+            ),
+
+            const SizedBox(height: 14),
+
+            Text(
+              isHistory ? 'No reservation history' : 'No active reservations',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              isHistory
+                  ? 'Collected, cancelled and expired reservations will appear here.'
+                  : 'Pending and confirmed reservations will appear here.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

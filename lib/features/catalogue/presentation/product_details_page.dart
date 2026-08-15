@@ -1,3 +1,4 @@
+import 'package:china_city_catalogue/features/catalogue/presentation/widgets/collection_time_sheet.dart';
 import 'package:china_city_catalogue/features/recommendations/providers/recommendation_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,14 +95,32 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
   }
 
   Future<void> _reserveProduct() async {
+    final collectionAt = await showModalBottomSheet<DateTime>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const CollectionTimeSheet(),
+    );
+
+    if (collectionAt == null) return;
+
+    final expiry = collectionAt.add(const Duration(minutes: 30));
+
+    String formatTime(DateTime value) {
+      return '${value.hour.toString().padLeft(2, '0')}:'
+          '${value.minute.toString().padLeft(2, '0')}';
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Reserve Product'),
+          title: const Text('Confirm Reservation'),
           content: Text(
-            'Reserve ${product.name} '
-            'for collection?',
+            'Reserve ${product.name} for collection '
+            'at ${formatTime(collectionAt)}?\n\n'
+            'The product will be held until '
+            '${formatTime(expiry)}.',
           ),
           actions: [
             TextButton(
@@ -114,7 +133,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
               onPressed: () {
                 Navigator.pop(context, true);
               },
-              child: const Text('Confirm'),
+              child: const Text('Reserve'),
             ),
           ],
         );
@@ -130,7 +149,11 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
     try {
       await ref
           .read(reservationRepositoryProvider)
-          .createReservation(productId: product.id, quantity: 1);
+          .createReservation(
+            productId: product.id,
+            quantity: 1,
+            collectionAt: collectionAt,
+          );
 
       try {
         await ref

@@ -22,6 +22,10 @@ class ReservationStatusBadge extends StatelessWidget {
         icon = Icons.cancel_outlined;
         break;
 
+      case 'EXPIRED':
+        icon = Icons.timer_off_outlined;
+        break;
+
       default:
         icon = Icons.schedule;
     }
@@ -58,6 +62,9 @@ class ReservationStatusBadge extends StatelessWidget {
 
       case 'CANCELLED':
         return 'Cancelled';
+
+      case 'EXPIRED':
+        return 'Expired';
 
       default:
         return 'Pending';
