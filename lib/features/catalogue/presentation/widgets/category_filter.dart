@@ -15,7 +15,7 @@ class CategoryFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 44,
+      height: 46,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
@@ -24,9 +24,26 @@ class CategoryFilter extends StatelessWidget {
         itemBuilder: (context, index) {
           final category = categories[index];
 
+          final isSelected = selectedCategory == category;
+
           return ChoiceChip(
             label: Text(category),
-            selected: selectedCategory == category,
+            selected: isSelected,
+            showCheckmark: false,
+            backgroundColor: Colors.white,
+            selectedColor: const Color(0xFFB42318),
+            side: BorderSide(
+              color: isSelected
+                  ? const Color(0xFFB42318)
+                  : const Color(0xFFE9E2DF),
+            ),
+            labelStyle: TextStyle(
+              color: isSelected
+                  ? Colors.white
+                  : Theme.of(context).colorScheme.onSurface,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             onSelected: (_) {
               onSelected(category);
             },

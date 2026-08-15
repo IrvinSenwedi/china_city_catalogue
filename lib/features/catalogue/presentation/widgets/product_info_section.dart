@@ -16,7 +16,7 @@ class ProductInfoSection extends StatelessWidget {
         Text(
           product.categoryName.toUpperCase(),
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
+            color: const Color(0xFF7C5A47),
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
           ),
@@ -37,23 +37,49 @@ class ProductInfoSection extends StatelessWidget {
           'R${product.price.toStringAsFixed(2)}',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
+            color: const Color(0xFF111827),
           ),
         ),
 
         const SizedBox(height: 22),
 
-        Row(
-          children: [
-            const Icon(Icons.storefront_outlined, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                product.storeName,
-                style: Theme.of(context).textTheme.bodyLarge,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE9E2DF)),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.storefront_outlined,
+                size: 20,
+                color: Color(0xFF7C5A47),
               ),
-            ),
-          ],
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Available from',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      product.storeName,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
 
         const SizedBox(height: 14),

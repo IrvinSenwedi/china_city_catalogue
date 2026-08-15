@@ -2,13 +2,13 @@ import 'package:china_city_catalogue/features/profile/presentation/profile_page.
 import 'package:china_city_catalogue/features/search/presentation/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../auth/providers/auth_providers.dart';
 import '../../recommendations/providers/recommendation_providers.dart';
 import '../../reservations/presentation/my_reservations_page.dart';
 import '../providers/catalogue_providers.dart';
 import 'widgets/catalogue_error_view.dart';
 import 'widgets/catalogue_header.dart';
-
 import 'widgets/catalogue_section_header.dart';
 import 'widgets/category_filter.dart';
 import 'widgets/empty_products.dart';
@@ -39,11 +39,13 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
       body: SafeArea(
         child: productsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
+
           error: (_, __) => CatalogueErrorView(
             onRetry: () {
               ref.invalidate(productsProvider);
             },
           ),
+
           data: (products) {
             final categories = [
               'All',
@@ -54,15 +56,13 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
             ];
 
             final filteredProducts = products.where((product) {
-              final matchesCategory =
-                  selectedCategory == 'All' ||
+              return selectedCategory == 'All' ||
                   product.categoryName == selectedCategory;
-
-              return matchesCategory;
             }).toList();
 
             return CustomScrollView(
               slivers: [
+                // HEADER
                 SliverToBoxAdapter(
                   child: CatalogueHeader(
                     onReservationsPressed: () {
@@ -73,34 +73,79 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
                         ),
                       );
                     },
-                    onSignOutPressed: () async {
-                      await ref.read(authRepositoryProvider).signOut();
-                    },
+
                     onProfilePressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const ProfilePage()),
                       );
                     },
+
+                    onSignOutPressed: () async {
+                      await ref.read(authRepositoryProvider).signOut();
+                    },
                   ),
                 ),
 
+                // SEARCH
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                    child: InkWell(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Material(
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(18),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const SearchPage()),
-                        );
-                      },
-                      child: IgnorePointer(
-                        child: TextField(
-                          decoration: const InputDecoration(
-                            hintText: 'What are you looking for?',
-                            prefixIcon: Icon(Icons.search),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SearchPage(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          height: 58,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: const Color(0xFFE9E2DF)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.search,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              Expanded(
+                                child: Text(
+                                  'What are you looking for?',
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+
+                              Container(
+                                padding: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward,
+                                  size: 17,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -108,16 +153,19 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
                   ),
                 ),
 
+                // PERSONALISED AI
                 if (personalisedAsync != null)
                   personalisedAsync.when(
                     loading: () => const SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
+                        padding: EdgeInsets.all(28),
                         child: Center(child: CircularProgressIndicator()),
                       ),
                     ),
+
                     error: (_, __) =>
                         const SliverToBoxAdapter(child: SizedBox.shrink()),
+
                     data: (recommendations) => SliverToBoxAdapter(
                       child: ForYouSection(
                         recommendations: recommendations,
@@ -126,16 +174,18 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
                     ),
                   ),
 
+                // CATEGORIES TITLE
                 const SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(16, 28, 16, 10),
+                    padding: EdgeInsets.fromLTRB(16, 30, 16, 10),
                     child: CatalogueSectionHeader(
                       title: 'Categories',
-                      subtitle: 'Browse by category',
+                      subtitle: 'Browse what is available',
                     ),
                   ),
                 ),
 
+                // CATEGORY FILTER
                 SliverToBoxAdapter(
                   child: CategoryFilter(
                     categories: categories,
@@ -148,26 +198,43 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
                   ),
                 ),
 
+                // PRODUCTS TITLE
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 28, 16, 4),
+                    padding: const EdgeInsets.fromLTRB(16, 30, 16, 6),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const CatalogueSectionHeader(
-                          title: 'Products',
-                          subtitle: 'Available in China City',
+                        const Expanded(
+                          child: CatalogueSectionHeader(
+                            title: 'Products',
+                            subtitle: 'Available across China City',
+                          ),
                         ),
-                        Text(
-                          '${filteredProducts.length}',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
+
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${filteredProducts.length}',
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
 
+                // PRODUCTS
                 if (filteredProducts.isEmpty)
                   const SliverFillRemaining(
                     hasScrollBody: false,
@@ -175,18 +242,16 @@ class _CataloguePageState extends ConsumerState<CataloguePage> {
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
                     sliver: SliverGrid(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) =>
-                            ProductCard(product: filteredProducts[index]),
-                        childCount: filteredProducts.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return ProductCard(product: filteredProducts[index]);
+                      }, childCount: filteredProducts.length),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
+                            mainAxisSpacing: 14,
                             childAspectRatio: 0.68,
                           ),
                     ),

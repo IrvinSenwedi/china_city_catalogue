@@ -84,6 +84,32 @@ class _CollectionTimeSheetState extends State<CollectionTimeSheet> {
             const SizedBox(height: 10),
 
             SegmentedButton<int>(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return const Color(0xFFB42318);
+                  }
+                  if (states.contains(WidgetState.disabled)) {
+                    return const Color(0xFFF1F5F9);
+                  }
+                  return Colors.white;
+                }),
+                foregroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return Colors.white;
+                  }
+                  if (states.contains(WidgetState.disabled)) {
+                    return const Color(0xFF64748B);
+                  }
+                  return const Color(0xFF111827);
+                }),
+                side: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return const BorderSide(color: Color(0xFFB42318));
+                  }
+                  return const BorderSide(color: Color(0xFFE9E2DF));
+                }),
+              ),
               segments: [
                 ButtonSegment<int>(
                   value: 0,
@@ -125,6 +151,23 @@ class _CollectionTimeSheetState extends State<CollectionTimeSheet> {
                 return ChoiceChip(
                   label: Text('${hour.toString().padLeft(2, '0')}:00'),
                   selected: isSelected,
+                  showCheckmark: false,
+                  backgroundColor: Colors.white,
+                  selectedColor: const Color(0xFFB42318),
+                  disabledColor: const Color(0xFFF1F5F9),
+                  side: BorderSide(
+                    color: isSelected
+                        ? const Color(0xFFB42318)
+                        : const Color(0xFFE9E2DF),
+                  ),
+                  labelStyle: TextStyle(
+                    color: isSelected
+                        ? Colors.white
+                        : available
+                        ? const Color(0xFF111827)
+                        : const Color(0xFF64748B),
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
                   onSelected: available
                       ? (_) {
                           setState(() {
@@ -143,14 +186,30 @@ class _CollectionTimeSheetState extends State<CollectionTimeSheet> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFBFDBFE)),
                 ),
-                child: Text(
-                  'Collection: '
-                  '${_formatTime(selected)}\n'
-                  'Held until: '
-                  '${_formatTime(selected.add(const Duration(minutes: 30)))}',
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.schedule_outlined,
+                      color: Color(0xFF1D4ED8),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Collection: '
+                        '${_formatTime(selected)}\n'
+                        'Held until: '
+                        '${_formatTime(selected.add(const Duration(minutes: 30)))}',
+                        style: const TextStyle(
+                          color: Color(0xFF1E3A8A),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

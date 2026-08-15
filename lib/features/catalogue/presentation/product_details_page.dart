@@ -48,7 +48,51 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
     final productsAsync = ref.watch(productsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Product Details')),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        leadingWidth: 68,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Material(
+            color: Colors.white.withValues(alpha: 0.92),
+            shape: const CircleBorder(),
+            child: IconButton(
+              tooltip: 'Back',
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Color(0xFFE9E2DF))),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ReserveProductButton(
+                isAvailable: product.isAvailable,
+                isReserving: isReserving,
+                onPressed: _reserveProduct,
+              ),
+              if (product.isAvailable) ...[
+                const SizedBox(height: 7),
+                Text(
+                  'Held for 30 minutes after your collection time',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,7 +110,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
 
                   productsAsync.when(
                     loading: () => const SizedBox.shrink(),
-                    error: (_, __) => SimilarProductsSection(
+                    error: (_, _) => SimilarProductsSection(
                       recommendationsAsync: recommendationsAsync,
                       products: const [],
                     ),
@@ -74,14 +118,6 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
                       recommendationsAsync: recommendationsAsync,
                       products: products,
                     ),
-                  ),
-
-                  const SizedBox(height: 36),
-
-                  ReserveProductButton(
-                    isAvailable: product.isAvailable,
-                    isReserving: isReserving,
-                    onPressed: _reserveProduct,
                   ),
 
                   const SizedBox(height: 16),
@@ -103,6 +139,7 @@ class _ProductDetailsPageState extends ConsumerState<ProductDetailsPage> {
     );
 
     if (collectionAt == null) return;
+    if (!mounted) return;
 
     final expiry = collectionAt.add(const Duration(minutes: 30));
 
