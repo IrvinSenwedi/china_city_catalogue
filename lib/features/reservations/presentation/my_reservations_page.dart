@@ -15,6 +15,60 @@ class MyReservationsPage extends ConsumerStatefulWidget {
 class _MyReservationsPageState extends ConsumerState<MyReservationsPage> {
   int selectedTab = 0;
 
+  Future<void> _removeFromHistory(
+    String reservationId,
+    String productName,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Remove from History?'),
+          content: Text(
+            '$productName will no longer appear '
+            'in your reservation history.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text('Remove'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ref
+          .read(reservationRepositoryProvider)
+          .hideReservation(reservationId: reservationId);
+
+      ref.invalidate(myReservationsProvider);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Removed from history.')));
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to remove reservation: $error')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final reservationsAsync = ref.watch(myReservationsProvider);
@@ -133,8 +187,15 @@ class _MyReservationsPageState extends ConsumerState<MyReservationsPage> {
                           separatorBuilder: (_, __) =>
                               const SizedBox(height: 12),
                           itemBuilder: (context, index) {
+                            final reservation = visibleReservations[index];
                             return ReservationCard(
-                              reservation: visibleReservations[index],
+                              reservation: reservation,
+                              onRemove: selectedTab == 1
+                                  ? () => _removeFromHistory(
+                                      reservation.id,
+                                      reservation.productName,
+                                    )
+                                  : null,
                             );
                           },
                         ),

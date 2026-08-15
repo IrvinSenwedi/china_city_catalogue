@@ -1,5 +1,6 @@
-import 'package:china_city_catalogue/features/reservations/models/reservations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../models/reservations.dart';
 
 class ReservationRepository {
   ReservationRepository(this._client);
@@ -35,8 +36,6 @@ class ReservationRepository {
       throw Exception('You must be signed in.');
     }
 
-    // Expire any reservation whose
-    // collection window has passed.
     await _client.rpc('expire_reservations');
 
     final response = await _client
@@ -54,10 +53,25 @@ class ReservationRepository {
           )
         ''')
         .eq('customer_id', user.id)
+        .eq('hidden_by_customer', false)
         .order('created_at', ascending: false);
 
     return (response as List)
         .map((item) => Reservation.fromJson(item as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<void> hideReservation({required String reservationId}) async {
+    final user = _client.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('You must be signed in.');
+    }
+
+    await _client
+        .from('reservations')
+        .update({'hidden_by_customer': true})
+        .eq('id', reservationId)
+        .eq('customer_id', user.id);
   }
 }

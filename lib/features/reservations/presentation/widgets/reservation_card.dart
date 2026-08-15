@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'reservation_status_badge.dart';
 
 class ReservationCard extends StatelessWidget {
-  const ReservationCard({super.key, required this.reservation});
+  const ReservationCard({super.key, required this.reservation, this.onRemove});
 
   final Reservation reservation;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +41,7 @@ class ReservationCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
-
                       const SizedBox(height: 4),
-
                       Text(
                         'Quantity: ${reservation.quantity}',
                         style: Theme.of(context).textTheme.bodySmall,
@@ -63,7 +62,6 @@ class ReservationCard extends StatelessWidget {
                 label: 'Collection',
                 value: _formatDateTime(reservation.collectionAt!),
               ),
-
               const SizedBox(height: 10),
             ],
 
@@ -73,7 +71,6 @@ class ReservationCard extends StatelessWidget {
                 label: 'Held until',
                 value: _formatTime(reservation.expiresAt!),
               ),
-
               const SizedBox(height: 18),
             ],
 
@@ -100,37 +97,52 @@ class ReservationCard extends StatelessWidget {
             ),
 
             if (reservation.status == 'PENDING')
-              _StatusMessage(
+              const _StatusMessage(
                 icon: Icons.schedule_outlined,
                 message:
                     'Waiting for the retailer to confirm your reservation.',
               ),
 
             if (reservation.status == 'CONFIRMED')
-              _StatusMessage(
+              const _StatusMessage(
                 icon: Icons.storefront_outlined,
                 message:
                     'Your reservation is confirmed. Collect it within the selected collection window.',
               ),
 
             if (reservation.status == 'COLLECTED')
-              _StatusMessage(
+              const _StatusMessage(
                 icon: Icons.check_circle_outline,
                 message: 'This reservation has been collected successfully.',
               ),
 
             if (reservation.status == 'CANCELLED')
-              _StatusMessage(
+              const _StatusMessage(
                 icon: Icons.cancel_outlined,
                 message: 'This reservation was cancelled.',
               ),
 
             if (reservation.status == 'EXPIRED')
-              _StatusMessage(
+              const _StatusMessage(
                 icon: Icons.timer_off_outlined,
                 message:
                     'This reservation expired because the collection window passed.',
               ),
+
+            if (onRemove != null) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Remove from history'),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -144,9 +156,7 @@ class ReservationCard extends StatelessWidget {
 
     final year = value.year;
 
-    final time = _formatTime(value);
-
-    return '$day/$month/$year · $time';
+    return '$day/$month/$year · ${_formatTime(value)}';
   }
 
   static String _formatTime(DateTime value) {
@@ -174,27 +184,10 @@ class _InfoRow extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 18),
-
         const SizedBox(width: 8),
-
-        Text(
-          '$label:',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-
-        const SizedBox(width: 6),
-
-        Expanded(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ),
+        Text('$label:'),
+        const Spacer(),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -217,22 +210,10 @@ class _PriceRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: emphasize ? FontWeight.w600 : null,
-            color: emphasize
-                ? null
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          style: TextStyle(fontWeight: emphasize ? FontWeight.w600 : null),
         ),
-
         const Spacer(),
-
-        Text(
-          value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -252,9 +233,7 @@ class _StatusMessage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18),
-
           const SizedBox(width: 7),
-
           Expanded(
             child: Text(message, style: Theme.of(context).textTheme.bodySmall),
           ),
